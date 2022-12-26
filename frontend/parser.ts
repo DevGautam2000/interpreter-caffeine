@@ -52,69 +52,74 @@ export default class Parser {
       const prevToken = this.tokens.shift() as Token;
       return prevToken;
     },
-    expect: (type:TokenType, err: string) => {
+    expect: (type: TokenType, err: string) => {
+      const prev = this.tokens.shift() as Token;
 
-      const prev = this.tokens.shift() as Token
-      
-      if(!prev || prev.type !== TokenType[type]){
-        ErrorHandler.show("Parse Error.\n",err,prev,"Expected: ",TokenType[type])
-        ErrorHandler.exit() 
+      if (!prev || prev.type !== TokenType[type]) {
+        ErrorHandler.show(
+          "Parse Error.\n",
+          err,
+          prev,
+          "Expected: ",
+          TokenType[type]
+        );
+        ErrorHandler.exit();
       }
 
       return prev;
-    }
+    },
   };
 
   private Parse = {
-    statement(): Statement {
-      return this.expression();
+    statement: () => {
+      return this.Parse.expression() as Statement;
     },
-    expression(): Expression  {
-      return this.additiveExpression();
+
+    expression: () => {
+      return this.Parse.additiveExpression() as Expression;
     },
 
     additiveExpression: () => {
-      let left : Expression = this.Parse.multiplicativeExpression()
+      let left: Expression = this.Parse.multiplicativeExpression();
 
-      while(this.Consumer.first().value == "+" 
-      || this.Consumer.first().value == "-" ){
-        
-        const operator = this.Consumer.consume().value
-        const right = this.Parse.multiplicativeExpression()
+      while (
+        this.Consumer.first().value == "+" ||
+        this.Consumer.first().value == "-"
+      ) {
+        const operator = this.Consumer.consume().value;
+        const right = this.Parse.multiplicativeExpression();
 
-         left = {
+        left = {
           kind: Node.BinaryExpression,
           left,
           right,
-          operator
-        } as BinaryExpression
-
+          operator,
+        } as BinaryExpression;
       }
- 
-      return left
+
+      return left;
     },
 
     multiplicativeExpression: () => {
-      let left : Expression = this.Parse.primaryExpression()
+      let left: Expression = this.Parse.primaryExpression();
 
-      while(this.Consumer.first().value == "/" 
-      || this.Consumer.first().value == "*" 
-      || this.Consumer.first().value == "%" 
-      ){
-        
-        const operator = this.Consumer.consume().value
-        const right = this.Parse.primaryExpression()
+      while (
+        this.Consumer.first().value == "/" ||
+        this.Consumer.first().value == "*" ||
+        this.Consumer.first().value == "%"
+      ) {
+        const operator = this.Consumer.consume().value;
+        const right = this.Parse.primaryExpression();
 
-         left = {
+        left = {
           kind: Node.BinaryExpression,
           left,
           right,
-          operator
-        } as BinaryExpression
-
+          operator,
+        } as BinaryExpression;
       }
- 
-      return left
+
+      return left;
     },
 
     primaryExpression: () => {
@@ -134,25 +139,23 @@ export default class Parser {
           } as NumericLiteral;
 
         case TokenType[TokenType.OpenParen]: {
-          this.Consumer.consume() //consume the open paren
-          const value = this.Parse.expression()
+          this.Consumer.consume(); //consume the open paren
+          const value = this.Parse.expression();
           this.Consumer.expect(
             TokenType.CLoseParen,
             "Unexpected token found. Expected closing parenthesis."
-          ) //consume the closing paren
-          return value
+          ); //consume the closing paren
+          return value;
         }
         default:
-          ErrorHandler.show("Unexpected token found: ", this.Consumer.first())
-          ErrorHandler.exit()
-          
+          ErrorHandler.show("Unexpected token found: ", this.Consumer.first());
+          ErrorHandler.exit();
+
           //unreachable statement
-          return {} as Expression
+          return {} as Expression;
       }
     },
   };
-
-  
 }
 
 //todo : check precedence for closing and opening parenthesis
