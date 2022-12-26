@@ -1,0 +1,4 @@
+//this is a comment
+//for a testing purpose
+let x = 10+5*(22-20)
+f = 30+25
